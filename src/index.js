@@ -68,13 +68,33 @@ class Game extends React.Component {
       history: [{
         squares: Array(9).fill(null),
       }],
+      stepNumber: 0,
       xIsNext: true,
     }
   }
   render() {
     const history = this.state.history;
-    const current = history[history.length - 1];
+    const current = history[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
+
+    // You can use `map` over an array to create UI elements for each entry
+    const moves = history.map((step, move) => {
+      const desc = move
+        ? 'Go to move #' + move
+        : 'Go to game start';
+      return (
+        /*
+          `key` is a special, reserved property in React. It is used to identify UI elements
+          like `id` in native HTML. These keys are very useful for dynamically created lists.
+          This must be unique for every entry created. 
+
+        */
+        <li key={move}>
+          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+        </li>
+      )
+    })
+
     let status;
     if (winner) {
       status = 'Winner: ' + winner;
@@ -89,13 +109,13 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{ status }</div>
-          <ol>{/* TODO */}</ol>
+          <ol>{ moves }</ol>
         </div>
       </div>
     );
   }
   handleClick(i) {
-    const history = this.state.history;
+    const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     // Sliced to change data without mutation. We want to preserve the state of `squares`
     // at this point in time so that we can have an "undo" button
@@ -111,7 +131,15 @@ class Game extends React.Component {
       history: history.concat([{
         squares: squares,
       }]),
+      stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
+    })
+  }
+
+  jumpTo(step) {
+    this.setState({
+      stepNumber: step,
+      xIsNext: (step%2) === 0,
     })
   }
 
